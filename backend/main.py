@@ -12,6 +12,7 @@ import base64
 import numpy as np
 import cv2
 from emotion_model import EmotionDetector
+<<<<<<< HEAD
 from flask import Flask, send_from_directory, request, jsonify
 import os
 
@@ -38,6 +39,8 @@ def static_files(path):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+=======
+>>>>>>> 5f84182 (Initial commit - MoveSync AI project)
 
 app = FastAPI(title="MoveSync AI Backend", version="1.0.0")
 
