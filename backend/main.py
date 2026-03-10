@@ -12,6 +12,8 @@ import base64
 import numpy as np
 import cv2
 from emotion_model import EmotionDetector
+from fastapi.staticfiles import StaticFiles
+app.mount("/",StaticFiles(directory="dist",html=True),name="frontend")
 
 app = FastAPI(title="MoveSync AI Backend", version="1.0.0")
 
