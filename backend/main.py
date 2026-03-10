@@ -12,35 +12,6 @@ import base64
 import numpy as np
 import cv2
 from emotion_model import EmotionDetector
-<<<<<<< HEAD
-from flask import Flask, send_from_directory, request, jsonify
-import os
-
-app = Flask(__name__, static_folder="../dist", static_url_path="")
-
-@app.route("/")
-def serve():
-    return send_from_directory(app.static_folder, "index.html")
-
-
-@app.route("/detect", methods=["POST"])
-def detect_emotion():
-    # your emotion detection code here
-    emotion = "happy"
-    return jsonify({"emotion": emotion})
-
-
-# serve other frontend routes
-@app.route("/<path:path>")
-def static_files(path):
-    return send_from_directory(app.static_folder, path)
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
-=======
->>>>>>> 5f84182 (Initial commit - MoveSync AI project)
 
 app = FastAPI(title="MoveSync AI Backend", version="1.0.0")
 
