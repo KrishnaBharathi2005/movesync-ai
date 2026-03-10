@@ -1,6 +1,7 @@
 import React from "react";
 import { useApp } from "@/context/AppContext";
 import { EMOTION_EMOJIS } from "@/lib/constants";
+import {motion} from "framer-motion";
 
 interface HomePageProps {
   onNavigate: (page: "capture" | "history") => void;
@@ -25,9 +26,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {/* Welcome Banner */}
       <div className="bg-gradient-to-br from-secondary/20 to-primary/10 border border-primary/20 rounded-2xl p-8 mb-6 relative overflow-hidden">
         <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/20 rounded-full blur-3xl" />
-        <h1 className="font-display text-3xl font-extrabold relative">
-          Hey, <span className="text-primary">{user?.username || "User"}</span>! 👋
-        </h1>
+        <motion.h1
+  className="font-display text-3xl font-extrabold relative"
+  initial={{ opacity: 0, y: -20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.6 }}
+>
+  Hey, <span className="text-primary">{user?.username || "User"}</span>! 
+  <span className="wave"> 👋</span>
+</motion.h1>
         <p className="text-muted-foreground mt-2 relative">Your AI-powered mood music companion is ready.</p>
         <div className="flex gap-3 mt-5 relative">
           <button onClick={() => onNavigate("capture")} className="px-5 py-2.5 rounded-lg font-display text-xs font-bold bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:-translate-y-0.5 transition-all">

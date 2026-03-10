@@ -149,6 +149,13 @@
 .animate-pulse-dot {
   animation: pulse-dot 1.5s infinite;
 }
+@keyframes wave {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(15deg); }
+  40% { transform: rotate(-10deg); }
+  60% { transform: rotate(10deg); }
+  100% { transform: rotate(0deg); }
+}
 
 .animate-spin-custom {
   animation: spin 0.8s linear infinite;
@@ -158,3 +165,9 @@
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
+.wave {
+  display: inline-block;
+  transform-origin: 70% 70%;
+  animation: wave 2s infinite;
+}
+
