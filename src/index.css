@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 30% 3%;
+    --foreground: 214 50% 96%;
+
+    --card: 220 25% 9%;
+    --card-foreground: 214 50% 96%;
+
+    --popover: 220 25% 9%;
+    --popover-foreground: 214 50% 96%;
+
+    --primary: 160 100% 45%;
+    --primary-foreground: 220 30% 3%;
+
+    --secondary: 263 76% 52%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 220 15% 15%;
+    --muted-foreground: 218 11% 50%;
+
+    --accent: 38 92% 60%;
+    --accent-foreground: 220 30% 3%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 20% 16%;
+    --input: 220 20% 16%;
+    --ring: 160 100% 45%;
+
+    --radius: 0.75rem;
+
+    /* Emotion colors */
+    --emotion-happy: 43 96% 56%;
+    --emotion-sad: 217 92% 68%;
+    --emotion-angry: 0 94% 71%;
+    --emotion-fear: 259 75% 71%;
+    --emotion-disgust: 160 64% 55%;
+    --emotion-surprise: 24 95% 62%;
+    --emotion-neutral: 215 14% 64%;
+
+    /* Custom */
+    --surface: 220 25% 7%;
+    --gradient-primary: linear-gradient(135deg, hsl(160 100% 45%), hsl(160 90% 37%));
+    --gradient-accent: linear-gradient(135deg, hsl(263 76% 52%), hsl(160 100% 45%));
+    --shadow-glow: 0 8px 30px hsl(160 100% 45% / 0.3);
+
+    --sidebar-background: 220 25% 5%;
+    --sidebar-foreground: 218 11% 65%;
+    --sidebar-primary: 160 100% 45%;
+    --sidebar-primary-foreground: 220 30% 3%;
+    --sidebar-accent: 220 20% 12%;
+    --sidebar-accent-foreground: 214 50% 96%;
+    --sidebar-border: 220 20% 16%;
+    --sidebar-ring: 160 100% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Syne', sans-serif;
+  }
+}
+
+/* Background orbs */
+.bg-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.18;
+  pointer-events: none;
+  animation: orb-float 12s ease-in-out infinite;
+}
+
+.bg-orb-1 {
+  width: 600px;
+  height: 600px;
+  background: hsl(var(--secondary));
+  top: -200px;
+  right: -100px;
+}
+
+.bg-orb-2 {
+  width: 400px;
+  height: 400px;
+  background: hsl(var(--primary));
+  bottom: -100px;
+  left: -100px;
+  animation-delay: -4s;
+}
+
+.bg-orb-3 {
+  width: 300px;
+  height: 300px;
+  background: hsl(var(--accent));
+  top: 40%;
+  left: 40%;
+  animation-delay: -8s;
+}
+
+@keyframes orb-float {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(30px, -40px); }
+  66% { transform: translate(-20px, 20px); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.35s ease;
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 1.5s infinite;
+}
+
+.animate-spin-custom {
+  animation: spin 0.8s linear infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
