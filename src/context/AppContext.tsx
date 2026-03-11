@@ -34,97 +34,165 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const meta = session.user.user_metadata;
+
         setUser({
           username: meta?.username || session.user.email?.split("@")[0] || "User",
           email: session.user.email || "",
         });
-        // Load history for this user
+
         const histStr = localStorage.getItem(`ms_history_${session.user.id}`);
+
         if (histStr) {
-          try { setMoodHistory(JSON.parse(histStr)); } catch { setMoodHistory([]); }
+          try {
+            setMoodHistory(JSON.parse(histStr));
+          } catch {
+            setMoodHistory([]);
+          }
         }
+
       } else {
         setUser(null);
         setMoodHistory([]);
       }
+
       setLoading(false);
     });
 
-    // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+
       if (session?.user) {
+
         const meta = session.user.user_metadata;
+
         setUser({
           username: meta?.username || session.user.email?.split("@")[0] || "User",
           email: session.user.email || "",
         });
+
         const histStr = localStorage.getItem(`ms_history_${session.user.id}`);
+
         if (histStr) {
-          try { setMoodHistory(JSON.parse(histStr)); } catch { setMoodHistory([]); }
+          try {
+            setMoodHistory(JSON.parse(histStr));
+          } catch {
+            setMoodHistory([]);
+          }
         }
       }
+
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
+
   }, []);
 
-  // Persist history when it changes
+  // Save mood history
   useEffect(() => {
     const saveHistory = async () => {
+
       const { data: { session } } = await supabase.auth.getSession();
+
       if (session?.user && moodHistory.length > 0) {
         localStorage.setItem(`ms_history_${session.user.id}`, JSON.stringify(moodHistory));
       }
+
     };
+
     saveHistory();
+
   }, [moodHistory]);
 
+  // Login
   const login = useCallback(async (email: string, password: string): Promise<string | null> => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
     return error ? error.message : null;
+
   }, []);
 
+  // Register (FIXED REDIRECT)
   const register = useCallback(async (username: string, email: string, password: string): Promise<string | null> => {
+
     const { error } = await supabase.auth.signUp({
+
       email,
       password,
+
       options: {
-        data: { username },
-            },
+        data: {
+          username
+        },
+
+        emailRedirectTo: "https://movesync-ai-gcnv.vercel.app"
+
+      }
+
     });
+
     return error ? error.message : null;
+
   }, []);
 
+  // Logout
   const logout = useCallback(async () => {
+
     await supabase.auth.signOut();
+
   }, []);
 
+  // Add mood
   const addMoodEntry = useCallback((entry: Omit<MoodEntry, "id" | "timestamp">) => {
+
     const newEntry: MoodEntry = {
       ...entry,
       id: crypto.randomUUID(),
       timestamp: new Date().toISOString(),
     };
+
     setMoodHistory((prev) => [newEntry, ...prev]);
+
   }, []);
 
+  // Update profile
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
+
     if (updates.username) {
-      await supabase.auth.updateUser({ data: { username: updates.username } });
+      await supabase.auth.updateUser({
+        data: { username: updates.username }
+      });
     }
+
     setUser((prev) => prev ? { ...prev, ...updates } : null);
+
   }, []);
 
+  // Password reset (FIXED REDIRECT)
   const sendPasswordReset = useCallback(async (email: string): Promise<string | null> => {
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
+
+      redirectTo: "https://movesync-ai-gcnv.vercel.app/reset-password"
+
     });
+
     return error ? error.message : null;
+
   }, []);
 
+  // Update password
   const updatePassword = useCallback(async (newPassword: string): Promise<string | null> => {
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
     return error ? error.message : null;
+
   }, []);
 
   return (
