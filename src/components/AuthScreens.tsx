@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { LogoMark } from "@/components/LogoMark";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthScreensProps {
   onAuthenticated: () => void;
@@ -15,24 +16,29 @@ export function AuthScreens({ onAuthenticated }: AuthScreensProps) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-6 z-10">
+
       {screen === "login" && (
         <LoginForm
           onSwitch={setScreen}
           onLogin={async (email, pw) => {
             const err = await login(email, pw);
+
             if (err) {
               toast.error(err);
             } else {
               toast.success("Welcome back!");
+              onAuthenticated();
             }
           }}
         />
       )}
+
       {screen === "register" && (
         <RegisterForm
           onSwitch={setScreen}
           onRegister={async (u, e, p) => {
             const err = await register(u, e, p);
+
             if (err) {
               toast.error(err);
             } else {
@@ -41,60 +47,185 @@ export function AuthScreens({ onAuthenticated }: AuthScreensProps) {
           }}
         />
       )}
+
       {screen === "forgot" && (
-        <ForgotForm onSwitch={setScreen} sendReset={sendPasswordReset} />
+        <ForgotForm
+          onSwitch={setScreen}
+          sendReset={sendPasswordReset}
+        />
       )}
+
     </div>
   );
 }
 
-function LoginForm({ onSwitch, onLogin }: { onSwitch: (s: Screen) => void; onLogin: (email: string, pw: string) => Promise<void> }) {
+
+
+
+
+
+
+function GoogleLoginButton() {
+
+  const handleGoogleLogin = async () => {
+
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: "https://movesync-ai-gcnv.vercel.app"
+      }
+    });
+
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleGoogleLogin}
+      className="w-full py-3.5 rounded-xl font-display font-bold text-sm bg-white text-black flex items-center justify-center gap-2 hover:bg-gray-100 transition-all"
+    >
+      <img
+        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+        width="18"
+      />
+      Continue with Google
+    </button>
+  );
+}
+
+
+
+
+
+
+
+function LoginForm({
+  onSwitch,
+  onLogin
+}: {
+  onSwitch: (s: Screen) => void;
+  onLogin: (email: string, pw: string) => Promise<void>;
+}) {
+
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
+
     e.preventDefault();
+
     setError("");
-    if (!email || !pw) { setError("Please fill all fields"); return; }
+
+    if (!email || !pw) {
+      setError("Please fill all fields");
+      return;
+    }
+
     setLoading(true);
+
     await onLogin(email, pw);
+
     setLoading(false);
   };
 
   return (
-    <form onSubmit={submit} className="animate-slide-up bg-card/85 border border-border backdrop-blur-xl rounded-3xl p-12 w-full max-w-[440px]">
-      <div className="flex justify-center mb-8"><LogoMark /></div>
-      <h2 className="font-display text-2xl font-bold text-center mb-1">Welcome Back</h2>
-      <p className="text-muted-foreground text-center mb-8 text-sm">Sign in to sync your mood with music</p>
-      {error && <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-sm text-destructive mb-4">{error}</div>}
-      <div className="space-y-4 mb-6">
-        <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com"
-            className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">Password</label>
-          <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Enter password"
-            className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-        </div>
+    <form
+      onSubmit={submit}
+      className="animate-slide-up bg-card/85 border border-border backdrop-blur-xl rounded-3xl p-12 w-full max-w-[440px]"
+    >
+
+      <div className="flex justify-center mb-8">
+        <LogoMark />
       </div>
-      <button type="submit" disabled={loading} className="w-full py-3.5 rounded-xl font-display font-bold text-sm bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:-translate-y-0.5 hover:shadow-[var(--shadow-glow)] active:translate-y-0 transition-all disabled:opacity-50">
+
+      <h2 className="font-display text-2xl font-bold text-center mb-1">
+        Welcome Back
+      </h2>
+
+      <p className="text-muted-foreground text-center mb-8 text-sm">
+        Sign in to sync your mood with music
+      </p>
+
+      {error && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-sm text-destructive mb-4">
+          {error}
+        </div>
+      )}
+
+      <div className="space-y-4 mb-6">
+
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3"
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={pw}
+          onChange={(e) => setPw(e.target.value)}
+          className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3"
+        />
+
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground"
+      >
         {loading ? "Signing in…" : "Sign In"}
       </button>
-      <button type="button" onClick={() => onSwitch("forgot")} className="w-full py-3.5 mt-2.5 rounded-xl font-display font-bold text-sm bg-transparent border border-border text-foreground hover:border-primary hover:text-primary transition-all">
+
+      <div className="text-center text-xs text-muted-foreground my-4">
+        OR
+      </div>
+
+      <GoogleLoginButton />
+
+      <button
+        type="button"
+        onClick={() => onSwitch("forgot")}
+        className="w-full mt-3 text-sm text-primary"
+      >
         Forgot Password?
       </button>
+
       <p className="text-center mt-6 text-sm text-muted-foreground">
-        New here? <button type="button" onClick={() => onSwitch("register")} className="text-primary font-medium hover:underline">Create an account</button>
+        New here?{" "}
+        <button
+          type="button"
+          onClick={() => onSwitch("register")}
+          className="text-primary"
+        >
+          Create an account
+        </button>
       </p>
+
     </form>
   );
 }
 
-function RegisterForm({ onSwitch, onRegister }: { onSwitch: (s: Screen) => void; onRegister: (u: string, e: string, p: string) => Promise<void> }) {
+
+
+
+
+
+
+
+function RegisterForm({
+  onSwitch,
+  onRegister
+}: {
+  onSwitch: (s: Screen) => void;
+  onRegister: (u: string, e: string, p: string) => Promise<void>;
+}) {
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
@@ -102,101 +233,157 @@ function RegisterForm({ onSwitch, onRegister }: { onSwitch: (s: Screen) => void;
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
+
     e.preventDefault();
+
     setError("");
-    if (!username || !email || !pw) { setError("Please fill all fields"); return; }
-    if (pw.length < 6) { setError("Password must be at least 6 characters"); return; }
+
+    if (!username || !email || !pw) {
+      setError("Please fill all fields");
+      return;
+    }
+
     setLoading(true);
+
     await onRegister(username, email, pw);
+
     setLoading(false);
   };
 
   return (
-    <form onSubmit={submit} className="animate-slide-up bg-card/85 border border-border backdrop-blur-xl rounded-3xl p-12 w-full max-w-[440px]">
-      <div className="flex justify-center mb-8"><LogoMark /></div>
-      <h2 className="font-display text-2xl font-bold text-center mb-1">Create Account</h2>
-      <p className="text-muted-foreground text-center mb-8 text-sm">Start your mood-music journey today</p>
-      {error && <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 text-sm text-destructive mb-4">{error}</div>}
-      <div className="space-y-4 mb-6">
-        <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">Username</label>
-          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Choose a username"
-            className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com"
-            className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">Password</label>
-          <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Min 6 characters"
-            className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-        </div>
+    <form
+      onSubmit={submit}
+      className="animate-slide-up bg-card/85 border border-border backdrop-blur-xl rounded-3xl p-12 w-full max-w-[440px]"
+    >
+
+      <div className="flex justify-center mb-8">
+        <LogoMark />
       </div>
-      <button type="submit" disabled={loading} className="w-full py-3.5 rounded-xl font-display font-bold text-sm bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:-translate-y-0.5 hover:shadow-[var(--shadow-glow)] active:translate-y-0 transition-all disabled:opacity-50">
+
+      <h2 className="font-display text-2xl font-bold text-center mb-1">
+        Create Account
+      </h2>
+
+      <div className="space-y-4 mb-6">
+
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3"
+        />
+
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3"
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={pw}
+          onChange={(e) => setPw(e.target.value)}
+          className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3"
+        />
+
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground"
+      >
         {loading ? "Creating…" : "Create Account"}
       </button>
+
+      <div className="text-center text-xs text-muted-foreground my-4">
+        OR
+      </div>
+
+      <GoogleLoginButton />
+
       <p className="text-center mt-6 text-sm text-muted-foreground">
-        Already have an account? <button type="button" onClick={() => onSwitch("login")} className="text-primary font-medium hover:underline">Sign in</button>
+        Already have an account?{" "}
+        <button
+          type="button"
+          onClick={() => onSwitch("login")}
+          className="text-primary"
+        >
+          Sign in
+        </button>
       </p>
+
     </form>
   );
 }
 
-function ForgotForm({ onSwitch, sendReset }: { onSwitch: (s: Screen) => void; sendReset: (email: string) => Promise<string | null> }) {
+
+
+
+
+
+
+
+function ForgotForm({
+  onSwitch,
+  sendReset
+}: {
+  onSwitch: (s: Screen) => void;
+  sendReset: (email: string) => Promise<string | null>;
+}) {
+
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
 
   const submit = async () => {
-    if (!email) { toast.error("Enter your email address"); return; }
-    setLoading(true);
+
+    if (!email) {
+      toast.error("Enter your email");
+      return;
+    }
+
     const err = await sendReset(email);
-    setLoading(false);
+
     if (err) {
       toast.error(err);
     } else {
-      setSent(true);
-      toast.success("Password reset link sent to your email!");
+      toast.success("Password reset email sent!");
+      onSwitch("login");
     }
   };
 
   return (
-    <div className="animate-slide-up bg-card/85 border border-border backdrop-blur-xl rounded-3xl p-12 w-full max-w-[440px]">
-      <div className="flex justify-center mb-8"><LogoMark /></div>
-      <h2 className="font-display text-2xl font-bold text-center mb-1">Reset Password</h2>
-      <p className="text-muted-foreground text-center mb-8 text-sm">
-        {sent ? "Check your email for the reset link" : "We'll send a reset link to your email"}
-      </p>
+    <div className="bg-card p-10 rounded-2xl w-full max-w-[420px]">
 
-      {sent ? (
-        <div className="text-center">
-          <div className="text-5xl mb-4">📧</div>
-          <p className="text-sm text-muted-foreground mb-6">
-            We've sent a password reset link to <span className="text-primary font-semibold">{email}</span>. 
-            Click the link in your email to set a new password.
-          </p>
-          <button onClick={() => onSwitch("login")} className="w-full py-3.5 rounded-xl font-display font-bold text-sm bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:-translate-y-0.5 hover:shadow-[var(--shadow-glow)] active:translate-y-0 transition-all">
-            Back to Sign In
-          </button>
-        </div>
-      ) : (
-        <>
-          <div className="mb-6">
-            <label className="block text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wider">Email Address</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com"
-              className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" />
-          </div>
-          <button onClick={submit} disabled={loading}
-            className="w-full py-3.5 rounded-xl font-display font-bold text-sm bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:-translate-y-0.5 hover:shadow-[var(--shadow-glow)] active:translate-y-0 transition-all disabled:opacity-50">
-            {loading ? "Sending…" : "Send Reset Link"}
-          </button>
-          <button onClick={() => onSwitch("login")} className="w-full py-3.5 mt-2.5 rounded-xl font-display font-bold text-sm bg-transparent border border-border text-foreground hover:border-primary hover:text-primary transition-all">
-            Back to Sign In
-          </button>
-        </>
-      )}
+      <h2 className="text-xl font-bold mb-4 text-center">
+        Reset Password
+      </h2>
+
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3 mb-4"
+      />
+
+      <button
+        onClick={submit}
+        className="w-full py-3 rounded-xl bg-primary text-primary-foreground"
+      >
+        Send Reset Link
+      </button>
+
+      <button
+        onClick={() => onSwitch("login")}
+        className="w-full mt-3 text-sm text-primary"
+      >
+        Back to Login
+      </button>
+
     </div>
   );
 }
