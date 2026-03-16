@@ -6,6 +6,8 @@ import { AppProvider } from "@/context/AppContext";
 import Index from "./pages/Index";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import EmotionHistory from "@/components/EmotionHistory";
+import { saveEmotionHistory } from "@/utils/emotionHistory";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +21,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/history" element={<EmotionHistory />} />
           </Routes>
         </BrowserRouter>
       </AppProvider>

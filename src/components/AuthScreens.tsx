@@ -59,23 +59,22 @@ export function AuthScreens({ onAuthenticated }: AuthScreensProps) {
   );
 }
 
-
-
-
-
-
+/* GOOGLE LOGIN */
 
 function GoogleLoginButton() {
 
   const handleGoogleLogin = async () => {
 
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: "https://movesync-ai-gcnv.vercel.app"
+        redirectTo: window.location.origin
       }
     });
 
+    if (error) {
+      toast.error(error.message);
+    }
   };
 
   return (
@@ -93,11 +92,7 @@ function GoogleLoginButton() {
   );
 }
 
-
-
-
-
-
+/* LOGIN FORM */
 
 function LoginForm({
   onSwitch,
@@ -115,7 +110,6 @@ function LoginForm({
   const submit = async (e: React.FormEvent) => {
 
     e.preventDefault();
-
     setError("");
 
     if (!email || !pw) {
@@ -211,12 +205,7 @@ function LoginForm({
   );
 }
 
-
-
-
-
-
-
+/* REGISTER FORM */
 
 function RegisterForm({
   onSwitch,
@@ -235,7 +224,6 @@ function RegisterForm({
   const submit = async (e: React.FormEvent) => {
 
     e.preventDefault();
-
     setError("");
 
     if (!username || !email || !pw) {
@@ -321,12 +309,7 @@ function RegisterForm({
   );
 }
 
-
-
-
-
-
-
+/* FORGOT PASSWORD */
 
 function ForgotForm({
   onSwitch,
