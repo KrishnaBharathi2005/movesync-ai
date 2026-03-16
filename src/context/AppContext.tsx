@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect
+} from "react";
+
 import type { MoodEntry, UserProfile } from "@/lib/constants";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -7,12 +14,22 @@ interface AppState {
   moodHistory: MoodEntry[];
   isAuthenticated: boolean;
   loading: boolean;
+
   login: (email: string, password: string) => Promise<string | null>;
-  register: (username: string, email: string, password: string) => Promise<string | null>;
+  register: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<string | null>;
+
   logout: () => Promise<void>;
+
   addMoodEntry: (entry: Omit<MoodEntry, "id" | "timestamp">) => void;
+
   updateProfile: (updates: Partial<UserProfile>) => void;
+
   sendPasswordReset: (email: string) => Promise<string | null>;
+
   updatePassword: (newPassword: string) => Promise<string | null>;
 }
 
@@ -20,91 +37,140 @@ const AppContext = createContext<AppState | null>(null);
 
 export function useApp() {
   const ctx = useContext(AppContext);
-  if (!ctx) throw new Error("useApp must be used within AppProvider");
+
+  if (!ctx) {
+    throw new Error("useApp must be used within AppProvider");
+  }
+
   return ctx;
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+
   const [user, setUser] = useState<UserProfile | null>(null);
   const [moodHistory, setMoodHistory] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Listen to auth state changes
+  /* LOAD SESSION ON START */
+
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        const meta = session.user.user_metadata;
 
-        setUser({
-          username: meta?.username || session.user.email?.split("@")[0] || "User",
-          email: session.user.email || "",
-        });
+    const loadSession = async () => {
 
-        const histStr = localStorage.getItem(`ms_history_${session.user.id}`);
+      const { data } = await supabase.auth.getSession();
 
-        if (histStr) {
-          try {
-            setMoodHistory(JSON.parse(histStr));
-          } catch {
-            setMoodHistory([]);
-          }
-        }
-
-      } else {
-        setUser(null);
-        setMoodHistory([]);
-      }
-
-      setLoading(false);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
+      const session = data.session;
 
       if (session?.user) {
 
         const meta = session.user.user_metadata;
 
-        setUser({
-          username: meta?.username || session.user.email?.split("@")[0] || "User",
-          email: session.user.email || "",
-        });
+        const profile = {
+          username:
+            meta?.username ||
+            session.user.email?.split("@")[0] ||
+            "User",
 
-        const histStr = localStorage.getItem(`ms_history_${session.user.id}`);
+          email: session.user.email || ""
+        };
 
-        if (histStr) {
+        setUser(profile);
+
+        const stored = localStorage.getItem(
+          `ms_history_${session.user.id}`
+        );
+
+        if (stored) {
           try {
-            setMoodHistory(JSON.parse(histStr));
+            setMoodHistory(JSON.parse(stored));
           } catch {
             setMoodHistory([]);
           }
         }
+
       }
 
       setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-
-  }, []);
-
-  // Save mood history
-  useEffect(() => {
-    const saveHistory = async () => {
-
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (session?.user && moodHistory.length > 0) {
-        localStorage.setItem(`ms_history_${session.user.id}`, JSON.stringify(moodHistory));
-      }
 
     };
 
-    saveHistory();
+    loadSession();
+
+  }, []);
+
+  /* AUTH LISTENER */
+
+  useEffect(() => {
+
+    const { data } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+
+        if (session?.user) {
+
+          const meta = session.user.user_metadata;
+
+          const profile = {
+            username:
+              meta?.username ||
+              session.user.email?.split("@")[0] ||
+              "User",
+
+            email: session.user.email || ""
+          };
+
+          setUser(profile);
+
+          const stored = localStorage.getItem(
+            `ms_history_${session.user.id}`
+          );
+
+          if (stored) {
+            try {
+              setMoodHistory(JSON.parse(stored));
+            } catch {
+              setMoodHistory([]);
+            }
+          }
+
+        } else {
+
+          setUser(null);
+          setMoodHistory([]);
+
+        }
+
+      }
+    );
+
+    return () => {
+      data.subscription.unsubscribe();
+    };
+
+  }, []);
+
+  /* SAVE HISTORY PER USER */
+
+  useEffect(() => {
+
+    const save = async () => {
+
+      const { data } = await supabase.auth.getSession();
+
+      if (!data.session?.user) return;
+
+      localStorage.setItem(
+        `ms_history_${data.session.user.id}`,
+        JSON.stringify(moodHistory)
+      );
+    };
+
+    save();
 
   }, [moodHistory]);
 
-  // Login
-  const login = useCallback(async (email: string, password: string): Promise<string | null> => {
+  /* LOGIN */
+
+  const login = useCallback(async (email: string, password: string) => {
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -115,77 +181,83 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   }, []);
 
-  // Register (FIXED REDIRECT)
-  const register = useCallback(async (username: string, email: string, password: string): Promise<string | null> => {
+  /* REGISTER */
 
-    const { error } = await supabase.auth.signUp({
+  const register = useCallback(
+    async (username: string, email: string, password: string) => {
 
-      email,
-      password,
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
 
-      options: {
-        data: {
-          username
-        },
+        options: {
+          data: { username },
+          emailRedirectTo: window.location.origin
+        }
+      });
 
-        emailRedirectTo: "https://movesync-ai-gcnv.vercel.app"
+      return error ? error.message : null;
+    },
+    []
+  );
 
-      }
+  /* LOGOUT */
 
-    });
-
-    return error ? error.message : null;
-
-  }, []);
-
-  // Logout
   const logout = useCallback(async () => {
 
     await supabase.auth.signOut();
 
   }, []);
 
-  // Add mood
-  const addMoodEntry = useCallback((entry: Omit<MoodEntry, "id" | "timestamp">) => {
+  /* ADD MOOD ENTRY */
 
-    const newEntry: MoodEntry = {
-      ...entry,
-      id: crypto.randomUUID(),
-      timestamp: new Date().toISOString(),
-    };
+  const addMoodEntry = useCallback(
+    (entry: Omit<MoodEntry, "id" | "timestamp">) => {
 
-    setMoodHistory((prev) => [newEntry, ...prev]);
+      const newEntry: MoodEntry = {
+        ...entry,
+        id: crypto.randomUUID(),
+        timestamp: new Date().toISOString()
+      };
 
-  }, []);
+      setMoodHistory((prev) => [newEntry, ...prev]);
 
-  // Update profile
-  const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
+    },
+    []
+  );
 
-    if (updates.username) {
-      await supabase.auth.updateUser({
-        data: { username: updates.username }
-      });
-    }
+  /* UPDATE PROFILE */
 
-    setUser((prev) => prev ? { ...prev, ...updates } : null);
+  const updateProfile = useCallback(
+    async (updates: Partial<UserProfile>) => {
 
-  }, []);
+      if (updates.username) {
+        await supabase.auth.updateUser({
+          data: { username: updates.username }
+        });
+      }
 
-  // Password reset (FIXED REDIRECT)
-  const sendPasswordReset = useCallback(async (email: string): Promise<string | null> => {
+      setUser((prev) => (prev ? { ...prev, ...updates } : null));
+
+    },
+    []
+  );
+
+  /* PASSWORD RESET */
+
+  const sendPasswordReset = useCallback(async (email: string) => {
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-
-      redirectTo: "https://movesync-ai-gcnv.vercel.app/reset-password"
-
+      redirectTo: `${window.location.origin}/reset-password`
     });
 
     return error ? error.message : null;
 
   }, []);
 
-  // Update password
-  const updatePassword = useCallback(async (newPassword: string): Promise<string | null> => {
+  /* UPDATE PASSWORD */
+
+  const updatePassword = useCallback(async (newPassword: string) => {
 
     const { error } = await supabase.auth.updateUser({
       password: newPassword
@@ -202,13 +274,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         moodHistory,
         isAuthenticated: !!user,
         loading,
+
         login,
         register,
         logout,
+
         addMoodEntry,
+
         updateProfile,
+
         sendPasswordReset,
-        updatePassword,
+        updatePassword
       }}
     >
       {children}
