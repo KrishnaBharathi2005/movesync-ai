@@ -54,62 +54,59 @@ export default function EmotionHistory() {
 
       {/* Emotion Distribution */}
 
-      <div className="bg-gray-900 rounded-xl p-6 mb-8">
+<div className="bg-gray-900 rounded-xl p-6 mb-8">
 
-        <h2 className="text-lg font-semibold mb-4">
-          Emotion Distribution
-        </h2>
+  <h2 className="text-lg font-semibold mb-4">
+    Emotion Distribution
+  </h2>
 
-        {sorted.map(([emotion, count], index) => {
+  {sorted.map(([emotion, count]) => {
 
-          const width = (count / maxCount) * 100;
+    const width = (count / maxCount) * 100;
+    const isTopEmotion = count === maxCount;
 
-          return (
+    return (
 
-            <div
-              key={emotion}
-              className="mb-3"
-            >
+      <div key={emotion} className="mb-4">
 
-              <div className="flex justify-between text-sm mb-1">
+        <div className="flex justify-between text-sm mb-1">
 
-                <span
-                  className={
-                    index === 0
-                      ? "text-green-400 font-bold"
-                      : ""
-                  }
-                >
-                  {emotion}
-                </span>
+          <span
+            className={
+              isTopEmotion
+                ? "text-green-400 font-bold"
+                : "text-gray-300"
+            }
+          >
+            {emotion}
+          </span>
 
-                <span>{count}</span>
+          <span className="text-gray-400">{count}</span>
 
-              </div>
+        </div>
 
-              <div className="w-full bg-gray-700 h-2 rounded">
+        <div className="w-full bg-gray-700 h-2 rounded">
 
-                <div
-                  className={
-                    index === 0
-                      ? "bg-green-500 h-2 rounded"
-                      : "bg-gray-400 h-2 rounded"
-                  }
-                  style={{
-                    width: `${width}%`
-                  }}
-                />
+          <div
+            className={
+              isTopEmotion
+                ? "bg-green-500 h-2 rounded transition-all duration-500"
+                : "bg-gray-400 h-2 rounded transition-all duration-500"
+            }
+            style={{
+              width: `${width}%`
+            }}
+          />
 
-              </div>
-
-            </div>
-
-          );
-
-        })}
+        </div>
 
       </div>
 
+    );
+
+  })}
+
+</div>
       {/* Recent Sessions */}
 
       <div className="bg-gray-900 rounded-xl p-6">
