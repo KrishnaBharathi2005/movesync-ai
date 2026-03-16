@@ -51,8 +51,7 @@ export default function EmotionHistory() {
       <p className="text-gray-400 mb-6">
         Your emotion journey over time
       </p>
-
-      {/* Emotion Distribution */}
+{/* Emotion Distribution */}
 
 <div className="bg-gray-900 rounded-xl p-6 mb-8">
 
@@ -62,12 +61,17 @@ export default function EmotionHistory() {
 
   {sorted.map(([emotion, count]) => {
 
-    const width = (count / maxCount) * 100;
-    const isTopEmotion = count === maxCount;
+    const width = (count / maxCount) * 100
+    const isTopEmotion = count === maxCount
 
     return (
 
-      <div key={emotion} className="mb-4">
+      <div
+        key={emotion}
+        className={`mb-4 p-2 rounded ${
+          isTopEmotion ? "bg-green-900/30" : ""
+        }`}
+      >
 
         <div className="flex justify-between text-sm mb-1">
 
@@ -85,13 +89,13 @@ export default function EmotionHistory() {
 
         </div>
 
-        <div className="w-full bg-gray-700 h-2 rounded">
+        <div className="w-full bg-gray-700 h-3 rounded">
 
           <div
             className={
               isTopEmotion
-                ? "bg-green-500 h-2 rounded transition-all duration-500"
-                : "bg-gray-400 h-2 rounded transition-all duration-500"
+                ? "h-3 rounded bg-gradient-to-r from-green-400 to-green-600 transition-all duration-700"
+                : "h-3 rounded bg-gray-500 transition-all duration-700"
             }
             style={{
               width: `${width}%`
@@ -102,7 +106,7 @@ export default function EmotionHistory() {
 
       </div>
 
-    );
+    )
 
   })}
 
