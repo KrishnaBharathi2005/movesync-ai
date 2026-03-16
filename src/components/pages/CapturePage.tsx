@@ -31,7 +31,7 @@ export function CapturePage() {
     ageGroup: string;
   } | null>(null);
 
-  /* SAVE MOOD TO SUPABASE */
+  /* SAVE MOOD */
 
   const saveMood = async (
     emotion: Emotion,
@@ -42,20 +42,23 @@ export function CapturePage() {
     const { data } = await supabase.auth.getUser();
 
     if (!data?.user) return;
-const { error } = await supabase
-  .from("mood_history" as any)
-  .insert([
-    {
-      user_id: data.user.id,
-      emotion: emotion,
-      confidence: confidence,
-      age_group: ageGroup
-    }
-  ]);
 
-if (error) {
-  console.error("Supabase insert error:", error);
-}
+    const { error } = await supabase
+      .from("mood_history" as any)
+      .insert([
+        {
+          user_id: data.user.id,
+          emotion: emotion,
+          confidence: confidence,
+          age_group: ageGroup
+        }
+      ]);
+
+    if (error) {
+      console.error("Supabase insert error:", error);
+    }
+
+  };
 
   /* START CAMERA */
 
@@ -97,7 +100,7 @@ if (error) {
 
   }, [stream]);
 
-  /* LOAD CAMERA + FACE MODELS */
+  /* LOAD MODELS */
 
   useEffect(() => {
 
@@ -210,8 +213,6 @@ if (error) {
 
       <div className="flex gap-6">
 
-        {/* CAMERA */}
-
         <div className="w-[420px] border rounded-xl overflow-hidden">
 
           <video
@@ -250,8 +251,6 @@ if (error) {
           <canvas ref={canvasRef} className="hidden" />
 
         </div>
-
-        {/* RESULT */}
 
         <div className="flex-1">
 
@@ -292,8 +291,6 @@ if (error) {
   );
 
 }
-
-/* MUSIC PANEL */
 
 function MusicPanel({ emotion }: { emotion: Emotion }) {
 
