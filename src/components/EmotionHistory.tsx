@@ -1,16 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { getEmotionHistory } from "../utils/emotionHistory";
 
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer
+} from "recharts";
+
 interface EmotionItem {
   emotion: string;
   confidence?: number;
   time?: string;
 }
 
+const COLORS = [
+  "#22c55e",
+  "#3b82f6",
+  "#f59e0b",
+  "#ef4444",
+  "#a855f7",
+  "#14b8a6"
+];
+
 export default function EmotionHistory() {
 
   const [history, setHistory] = useState<EmotionItem[]>([]);
-  const [counts, setCounts] = useState<{ [key: string]: number }>({});
+  const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
 
@@ -18,27 +39,26 @@ export default function EmotionHistory() {
 
     setHistory(data);
 
-    const emotionCount: { [key: string]: number } = {};
+    const counts: { [key: string]: number } = {};
 
     data.forEach((item) => {
 
       const emotion = item.emotion;
 
-      if (!emotionCount[emotion]) emotionCount[emotion] = 0;
+      if (!counts[emotion]) counts[emotion] = 0;
 
-      emotionCount[emotion]++;
+      counts[emotion]++;
 
     });
 
-    setCounts(emotionCount);
+    const formatted = Object.entries(counts).map(([emotion, count]) => ({
+      emotion,
+      count
+    }));
+
+    setChartData(formatted);
 
   }, []);
-
-  const sorted = Object.entries(counts).sort(
-    (a, b) => b[1] - a[1]
-  );
-
-  const maxCount = sorted.length > 0 ? sorted[0][1] : 1;
 
   return (
 
@@ -51,69 +71,93 @@ export default function EmotionHistory() {
       <p className="text-gray-400 mb-6">
         Your emotion journey over time
       </p>
-{/* Emotion Distribution */}
 
-<div className="bg-gray-900 rounded-xl p-6 mb-8">
+      <div className="grid grid-cols-2 gap-6">
 
-  <h2 className="text-lg font-semibold mb-4">
-    Emotion Distribution
-  </h2>
+        {/* PIE CHART */}
 
-  {sorted.map(([emotion, count]) => {
+        <div className="bg-gray-900 rounded-xl p-6">
 
-    const width = (count / maxCount) * 100
-    const isTopEmotion = count === maxCount
+          <h2 className="text-lg font-semibold mb-4">
+            Emotion Distribution
+          </h2>
 
-    return (
+          <ResponsiveContainer width="100%" height={250}>
 
-      <div
-        key={emotion}
-        className={`mb-4 p-2 rounded ${
-          isTopEmotion ? "bg-green-900/30" : ""
-        }`}
-      >
+            <PieChart>
 
-        <div className="flex justify-between text-sm mb-1">
+              <Pie
+                data={chartData}
+                dataKey="count"
+                nameKey="emotion"
+                outerRadius={90}
+                label
+              >
 
-          <span
-            className={
-              isTopEmotion
-                ? "text-green-400 font-bold"
-                : "text-gray-300"
-            }
-          >
-            {emotion}
-          </span>
+                {chartData.map((entry, index) => (
 
-          <span className="text-gray-400">{count}</span>
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+
+                ))}
+
+              </Pie>
+
+              <Tooltip />
+
+            </PieChart>
+
+          </ResponsiveContainer>
 
         </div>
 
-        <div className="w-full bg-gray-700 h-3 rounded">
+        {/* BAR CHART */}
 
-          <div
-            className={
-              isTopEmotion
-                ? "h-3 rounded bg-gradient-to-r from-green-400 to-green-600 transition-all duration-700"
-                : "h-3 rounded bg-gray-500 transition-all duration-700"
-            }
-            style={{
-              width: `${width}%`
-            }}
-          />
+        <div className="bg-gray-900 rounded-xl p-6">
+
+          <h2 className="text-lg font-semibold mb-4">
+            Emotion Intensity
+          </h2>
+
+          <ResponsiveContainer width="100%" height={250}>
+
+            <BarChart data={chartData}>
+
+              <XAxis dataKey="emotion" />
+
+              <YAxis />
+
+              <Tooltip />
+
+              <Bar
+                dataKey="count"
+                radius={[6, 6, 0, 0]}
+              >
+
+                {chartData.map((entry, index) => (
+
+                  <Cell
+                    key={`bar-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+
+                ))}
+
+              </Bar>
+
+            </BarChart>
+
+          </ResponsiveContainer>
 
         </div>
 
       </div>
 
-    )
+      {/* RECENT SESSIONS */}
 
-  })}
-
-</div>
-      {/* Recent Sessions */}
-
-      <div className="bg-gray-900 rounded-xl p-6">
+      <div className="bg-gray-900 rounded-xl p-6 mt-8">
 
         <h2 className="text-lg font-semibold mb-4">
           Recent Sessions
@@ -143,9 +187,11 @@ export default function EmotionHistory() {
             </div>
 
             {item.confidence && (
+
               <span className="text-green-400 font-semibold">
                 {Math.round(item.confidence * 100)}%
               </span>
+
             )}
 
           </div>
